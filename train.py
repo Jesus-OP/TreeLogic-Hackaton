@@ -8,7 +8,8 @@ import os
 
 # ── Configuración ────────────────────────────────────────────────────────────
 
-BASE_DIR = r"D:\Proyectos\TreeLogicHackaton"
+from pathlib import Path
+BASE_DIR = str(Path(__file__).resolve().parent)
 DATA_YAML = os.path.join(BASE_DIR, "data.yaml")
 
 # Modelo base: yolov8n (nano) es rápido; cambia a yolov8s o yolov8m si quieres más precisión
