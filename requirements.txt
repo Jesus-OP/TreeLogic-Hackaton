@@ -9,6 +9,9 @@ opencv-python>=4.9.0
 Pillow>=10.0.0
 numpy>=1.24.0
 
+# Web interface
+gradio>=4.0.0
+
 # Utilidades
 tqdm>=4.66.0
 matplotlib>=3.7.0
