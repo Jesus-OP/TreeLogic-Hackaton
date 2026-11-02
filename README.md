@@ -25,13 +25,13 @@ The solution is an end-to-end pipeline with four stages:
 
 ### Detected classes
 
-| ID | Class  | Description              | Confidence threshold |
-|----|--------|--------------------------|----------------------|
-| 0  | `name` | Patient name             | 0.15                 |
-| 1  | `id`   | Patient / study ID       | 0.15                 |
-| 2  | `age`  | Patient age              | 0.25                 |
-| 3  | `date` | Dates                    | 0.20                 |
-| 4  | `time` | Time stamps              | 0.15                 |
+| ID | Class  | Description        | Confidence threshold |
+|----|--------|--------------------|----------------------|
+| 0  | `name` | Patient name       | 0.15                 |
+| 1  | `id`   | Patient / study ID | 0.15                 |
+| 2  | `age`  | Patient age        | 0.25                 |
+| 3  | `date` | Dates              | 0.20                 |
+| 4  | `time` | Time stamps        | 0.15                 |
 
 Thresholds are intentionally low for the most identifying classes (`name`, `id`, `time`) to favor **recall**: it is preferable to blur an extra area than to leave personal data exposed.
 
@@ -41,17 +41,22 @@ The project is built entirely in **Python**:
 
 ```
 .
+├── models/
+│   └── best.pt        # Trained YOLOv8 weights (ready to use)
 ├── data.yaml          # Dataset paths and class definitions (YOLO format)
 ├── train.py           # YOLOv8 training script
-├── pipeline.py        # Batch de-identification pipeline (detection + OCR + anonymization + metrics)
-├── app.py             # Gradio web interface for interactive de-identification
+├── evaluate.py        # Model evaluation on the validation set
+├── pipeline.py        # Batch de-identification pipeline
+├── app.py             # Gradio web interface
 ├── requirements.txt   # Python dependencies
 └── README.md
 ```
 
+- `models/best.pt`: trained weights used by `pipeline.py` and `app.py`. Training is optional.
 - `data.yaml`: dataset location, number of classes (5) and class names.
-- `train.py`: trains a YOLOv8 model (`yolov8n.pt` by default, 100 epochs, early stopping with patience 20).
-- `pipeline.py`: processes every `.png` in the validation folder and saves anonymized images plus debug images with the detected boxes.
+- `train.py`: trains a YOLOv8 model (`yolov8n.pt` as base, 100 epochs, early stopping with patience 20).
+- `evaluate.py`: evaluates the model on the validation set and reports mAP@0.50, mAP@0.50:0.95, precision and recall, both global and per class.
+- `pipeline.py`: processes every `.png` in `images/val` and saves anonymized images plus debug images with the detected boxes.
 - `app.py`: Gradio UI. Upload an X-ray, choose *Blur gaussiano* or *Caja negra*, and get the detections, the anonymized image and the clinical utility metric.
 
 ## Dataset Structure
@@ -72,7 +77,7 @@ labels/
 ## Requirements
 
 - Python 3.9+
-- An **NVIDIA GPU with CUDA** (the code uses `device=0` and `easyocr.Reader(gpu=True)`). To run on CPU, change `device=0` to `device="cpu"` and `gpu=True` to `gpu=False` in `train.py`, `pipeline.py` and `app.py`.
+- An **NVIDIA GPU with CUDA** (the code uses `device=0` and `easyocr.Reader(gpu=True)`). To run on CPU, change `device=0` to `device="cpu"` and `gpu=True` to `gpu=False` in `train.py`, `evaluate.py`, `pipeline.py` and `app.py`.
 
 ## How to Run
 
@@ -89,17 +94,13 @@ labels/
    pip install -r requirements.txt
    ```
 
-3. Configure the paths. `BASE_DIR` is currently hardcoded in `train.py`, `pipeline.py`, `app.py` and `data.yaml` (`D:\Proyectos\TreeLogicHackaton`). Change it to the path of your local copy.
-
-4. Train the model (requires your own dataset in the structure above):
+3. Launch the web interface (uses the included `models/best.pt`):
 
    ```bash
-   python train.py
+   python app.py
    ```
 
-   The best weights are saved to `runs/deid_v1/weights/best.pt`. If your run folder has a different name (e.g. `deid_v1-3`), update `MODEL_PATH` in `pipeline.py` and `app.py` accordingly.
-
-5. Run the batch pipeline:
+4. Or run the batch pipeline. Place your images in `images/val/` first:
 
    ```bash
    python pipeline.py
@@ -107,11 +108,16 @@ labels/
 
    Anonymized images are saved to `output_anon/`, and debug images with the detected boxes to `output_anon/debug/`.
 
-6. Or launch the web interface:
+### Optional: train and evaluate your own model
 
-   ```bash
-   python app.py
-   ```
+Requires your own dataset in the structure above.
+
+```bash
+python train.py
+python evaluate.py
+```
+
+Training saves the weights to `runs/deid_v1/weights/best.pt`. To use them, copy `best.pt` to `models/best.pt`.
 
 ## Clinical Utility Metric
 
