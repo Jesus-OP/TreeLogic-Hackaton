@@ -113,7 +113,7 @@ labels/
    python app.py
    ```
 
-## 📊 Clinical Utility Metric
+## Clinical Utility Metric
 
 For every image, the pipeline reports the percentage of pixels modified by the anonymization:
 
