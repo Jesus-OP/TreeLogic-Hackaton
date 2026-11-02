@@ -17,7 +17,8 @@ from tqdm import tqdm
 
 # ── Configuración ────────────────────────────────────────────────────────────
 
-BASE_DIR    = r"D:\Proyectos\TreeLogicHackaton"
+from pathlib import Path
+BASE_DIR = str(Path(__file__).resolve().parent)
 MODEL_PATH  = os.path.join(BASE_DIR, "runs", "deid_v1-3", "weights", "best.pt")
 
 INPUT_DIR   = os.path.join(BASE_DIR, "images", "val")
